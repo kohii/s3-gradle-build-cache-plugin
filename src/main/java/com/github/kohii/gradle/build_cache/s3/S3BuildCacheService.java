@@ -15,6 +15,9 @@ package com.github.kohii.gradle.build_cache.s3;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -68,24 +71,43 @@ public class S3BuildCacheService implements BuildCacheService {
     String key = createS3Key(prefix, buildCacheKey.getHashCode());
     log.info("Start storing cache entry. key={}", key);
 
-    try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-      buildCacheEntryWriter.writeTo(os);
-      byte[] bytes = os.toByteArray();
+    try {
+      if (buildCacheEntryWriter.getSize() < 10_000_000 /* 10MB */) {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+          buildCacheEntryWriter.writeTo(os);
+          byte[] bytes = os.toByteArray();
 
-      ObjectMetadata meta = new ObjectMetadata();
-      meta.setContentType(BUILD_CACHE_CONTENT_TYPE);
-      meta.setContentLength(bytes.length);
-
-      try (InputStream is = new ByteArrayInputStream(bytes)) {
-        PutObjectRequest request = new PutObjectRequest(bucketName, key, is, meta);
-        if (reducedRedundancyStorage) {
-          request.setStorageClass(StorageClass.ReducedRedundancy);
+          try (InputStream is = new ByteArrayInputStream(bytes)) {
+            putObject(key, is, bytes.length);
+          }
         }
-        amazonS3.putObject(request);
+      } else {
+        File file = File.createTempFile("s3-gradle-build-cache-plugin", ".tmp");
+        try (FileOutputStream os = new FileOutputStream(file)) {
+          buildCacheEntryWriter.writeTo(os);
+
+          try (InputStream is = new FileInputStream(file)) {
+            putObject(key, is, file.length());
+          }
+        } finally {
+          file.delete();
+        }
       }
     } catch (IOException e) {
       throw new BuildCacheException("Error while storing cache object in S3 bucket", e);
     }
+  }
+
+  private void putObject(String key, InputStream is, long size) {
+    ObjectMetadata meta = new ObjectMetadata();
+    meta.setContentType(BUILD_CACHE_CONTENT_TYPE);
+    meta.setContentLength(size);
+
+    PutObjectRequest request = new PutObjectRequest(bucketName, key, is, meta);
+    if (reducedRedundancyStorage) {
+      request.setStorageClass(StorageClass.ReducedRedundancy);
+    }
+    amazonS3.putObject(request);
   }
 
   static String createS3Key(String prefix, String buildCacheHashCode) {
