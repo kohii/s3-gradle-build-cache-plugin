@@ -1,0 +1,47 @@
+plugins {
+  id 'java'
+  id 'java-gradle-plugin'
+  id 'maven-publish'
+  id 'com.gradle.plugin-publish' version '0.10.1'
+}
+
+group 'com.github.kohii'
+version '0.1.0-beta1'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compileOnly 'org.projectlombok:lombok:1.18.10'
+  annotationProcessor 'org.projectlombok:lombok:1.18.10'
+  compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.658'
+
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:5.5.2")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+}
+
+test {
+  useJUnitPlatform()
+}
+
+gradlePlugin {
+  plugins {
+    s3BuildCache {
+      id = 'com.github.kohii.s3-gradle-build-cache-plugin'
+      implementationClass = 'com.github.kohii.gradle.build_cache.s3.S3BuildCachePlugin'
+      displayName = 'S3 Build Cache Plugin'
+      description = 'A Gradle build cache that uses AWS S3 to store build artifacts'
+    }
+  }
+}
+
+pluginBundle {
+  website = 'https://github.com/kohii/s3-gradle-build-cache-plugin'
+  vcsUrl = 'https://github.com/kohii/s3-gradle-build-cache-plugin'
+  tags = ['build-cache', 'cache', 's3']
+}
