@@ -51,14 +51,23 @@ buildCache {
 
 | Configuration Key        | Type    | Description                                                                                                | Mandatory | Default Value |
 | ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------- | --------- | ------------- |
-| awsAccessKeyId           | String  | The AWS access key id                                                                                      | yes       |               |
-| awsSecretKey             | String  | The AWS secret access key                                                                                  | yes       |               |
-| sessionToken             | String  | The AWS sessionToken                                                                                       |           |               |
+| awsAccessKeyId           | String  | The AWS access key id                                                                                      |           | [Using the Default Credential Provider Chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default) |
+| awsSecretKey             | String  | The AWS secret access key                                                                                  |           | [Using the Default Credential Provider Chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default) |
+| sessionToken             | String  | The AWS sessionToken                                                                                       |           | [Using the Default Credential Provider Chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default) |
 | region                   | String  | The AWS region                                                                                             | yes       |               |
 | bucket                   | String  | The name of the AWS S3 bucket where cache objects should be stored.                                        | yes       |               |
 | prefix                   | String  | The prefix of the AWS S3 object key in the bucket                                                          |           |               |
 | endpoint                 | String  | The S3 endpoint                                                                                            |           |               |
 | reducedRedundancyStorage | boolean | Whether to use [Reduced Redundancy Storage](https://aws.amazon.com/s3/reduced-redundancy/?nc1=h_ls) or not |           | `true`        |
+
+### AWS credentials
+
+By default, this plugin uses `Default Credential Provider Chain` to lookup the AWS credentials.  
+See [Using the Default Credential Provider Chain - AWS SDK for Java](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default) for more details.
+
+If you want to set `access key id` and `secret access key` manually,
+configure `awsAccessKeyId` and `awsSecretKey` (and `sessionToken` optionally).
+
 
 ### S3 Bucket Policy
 
