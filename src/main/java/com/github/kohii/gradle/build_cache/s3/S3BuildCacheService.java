@@ -45,20 +45,19 @@ public class S3BuildCacheService implements BuildCacheService {
   private final String prefix;
   private final boolean reducedRedundancyStorage;
 
-
   @Override
   public boolean load(BuildCacheKey buildCacheKey, BuildCacheEntryReader buildCacheEntryReader)
       throws BuildCacheException {
     String key = createS3Key(prefix, buildCacheKey.getHashCode());
     if (!amazonS3.doesObjectExist(bucketName, key)) {
-      log.info("Build cache not found. key={}", key);
+      log.info("Build cache not found. key='{}'", key);
       return false;
     }
 
     try (S3Object object = amazonS3.getObject(bucketName, key);
          InputStream is = object.getObjectContent()) {
       buildCacheEntryReader.readFrom(is);
-      log.info("Build cache found. key={}", key);
+      log.info("Build cache found. key='{}'", key);
       return true;
     } catch (IOException e) {
       throw new BuildCacheException("Error while reading cache object from S3 bucket", e);
@@ -69,7 +68,7 @@ public class S3BuildCacheService implements BuildCacheService {
   public void store(BuildCacheKey buildCacheKey, BuildCacheEntryWriter buildCacheEntryWriter)
       throws BuildCacheException {
     String key = createS3Key(prefix, buildCacheKey.getHashCode());
-    log.info("Start storing cache entry. key={}", key);
+    log.info("Start storing cache entry. key='{}'", key);
 
     try {
       if (buildCacheEntryWriter.getSize() < 10_000_000 /* 10MB */) {
@@ -82,6 +81,7 @@ public class S3BuildCacheService implements BuildCacheService {
           }
         }
       } else {
+        // Use a temporary file to transfer the object
         File file = File.createTempFile("s3-gradle-build-cache-plugin", ".tmp");
         try (FileOutputStream os = new FileOutputStream(file)) {
           buildCacheEntryWriter.writeTo(os);
