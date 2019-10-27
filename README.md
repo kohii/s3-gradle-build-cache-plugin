@@ -25,7 +25,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "gradle.plugin.com.github.kohii.s3-gradle-build-cache-plugin:<version>"
+    classpath "gradle.plugin.com.github.kohii.s3-gradle-build-cache-plugin:0.1.0"
   }
 }
 
@@ -38,11 +38,9 @@ buildCache {
     enabled = !isCiServer
   }
   remote(com.github.kohii.gradle.build_cache.s3.S3BuildCache) {
-    region = '...'
-    bucket = '...'
+    region = '<your region>'
+    bucket = '<your bucket name>'
     push = isCiServer
-    awsAccessKeyId = '...'
-    awsSecretKey = '...'
   }
 }
 ```
